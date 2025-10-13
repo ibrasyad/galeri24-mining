@@ -3,7 +3,7 @@ import json
 import re
 import logging
 import tempfile
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -106,6 +106,10 @@ def scrape():
     df["harga_jual"] = df["harga_jual"].astype(int)
     df["harga_buyback"] = df["harga_buyback"].astype(int)
 
+    df["timestamp_local"] = (pd.to_datetime(df["timestamp"], utc=True) + timedelta(hours=7)).dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    df = df[["timestamp", "timestamp_local", "brand", "weight", "harga_jual", "harga_buyback"]]
+    
     return df
 
 
