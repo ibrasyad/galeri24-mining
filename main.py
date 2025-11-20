@@ -15,7 +15,7 @@ from gspread_dataframe import set_with_dataframe
 # ---------- Configuration ----------
 URL = "https://www.ecorp.galeri24.co.id/harga-emas"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
-SHEET_ID = "1wBU6Tqyv-FI2Vp3unGo_jObz9RMabgSJu1X7ztzauO4"
+SHEET_ID = "1BCR_IbhFWSIR1faz9UJXItLHSOicaSWofymvDCSuq_E"
 WORKSHEET_NAME = "Galeri24"
 # ENV: GCP_SERVICE_ACCOUNT_JSON contains the raw JSON string (not a path)
 # ---------- End config ----------
