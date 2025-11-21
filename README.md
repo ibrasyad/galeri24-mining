@@ -8,7 +8,7 @@ Each record includes both UTC and local (UTC+7) timestamps, brand, weight, and b
 ## Features
 
 - Automatically logs gold prices daily  
-- Dual timestamps — UTC and UTC+7 (Jakarta time)  
+- Dual timestamps UTC and UTC+7 (Jakarta time)  
 - Saves data directly to Google Sheets (BigQuery support may come later)  
 - Clean, ready-to-analyze data format  
 
