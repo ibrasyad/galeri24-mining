@@ -12,18 +12,12 @@ import pandas as pd
 import gspread
 from gspread_dataframe import set_with_dataframe
 
-# ---------- Configuration ----------
 URL = "https://www.ecorp.galeri24.co.id/harga-emas"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 SHEET_ID = "1BCR_IbhFWSIR1faz9UJXItLHSOicaSWofymvDCSuq_E"
 WORKSHEET_NAME = "Galeri24"
-# ENV: GCP_SERVICE_ACCOUNT_JSON contains the raw JSON string (not a path)
-# ---------- End config ----------
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-
-
-# --- Helpers ---
 
 def create_session(retries=3, backoff=0.3, status_forcelist=(500, 502, 503, 504)):
     s = requests.Session()
@@ -38,9 +32,7 @@ def create_session(retries=3, backoff=0.3, status_forcelist=(500, 502, 503, 504)
     s.mount("http://", HTTPAdapter(max_retries=retry))
     return s
 
-
 def parse_currency_to_int(text):
-    """Extract digits like 'Rp 1.234.567' -> 1234567, else return None"""
     if not text or not isinstance(text, str):
         return None
     m = re.search(r"([\d\.\,]+)", text)
@@ -52,9 +44,7 @@ def parse_currency_to_int(text):
     except ValueError:
         return None
 
-
 def parse_table(container_div, brand, timestamp_iso):
-    """Extract rows of weight, jual, buyback for a given brand"""
     parsed = []
     rows = container_div.select("div.grid.grid-cols-5.divide-x.lg\\:hover\\:bg-neutral-50.transition-all")
     for row in rows:
@@ -63,7 +53,6 @@ def parse_table(container_div, brand, timestamp_iso):
             weight, jual, buyback = cols
             parsed.append([timestamp_iso, brand, weight, jual, buyback])
     return parsed
-
 
 def scrape():
     s = create_session()
@@ -77,8 +66,7 @@ def scrape():
     soup = BeautifulSoup(resp.text, "html.parser")
     timestamp_iso = datetime.now(timezone.utc).isoformat()
 
-    # --- Locate sections for GALERI 24 and ANTAM ---
-    sections = soup.find_all("div", id=lambda x: x and x.strip() in ["GALERI 24", "ANTAM", "Dinar G24", "ANTAM NON PEGADAIAN", "UBS"])
+    sections = soup.find_all("div", id=lambda x: x and x.strip() in ["GALERI 24", "ANTAM", "Dinar G24", "ANTAM NON PEGADAIAN", "UBS"]) # Insert more gold brand here, check DIV id on the website
     if not sections:
         logging.warning("No sections found. Check the page structure.")
         return pd.DataFrame(columns=["timestamp", "brand", "weight", "harga_jual", "harga_buyback"])
@@ -97,7 +85,6 @@ def scrape():
 
     df = pd.DataFrame(all_data, columns=["timestamp", "brand", "weight", "harga_jual", "harga_buyback"])
 
-    # --- Clean numeric columns ---
     df["harga_jual"] = df["harga_jual"].apply(parse_currency_to_int)
     df["harga_buyback"] = df["harga_buyback"].apply(parse_currency_to_int)
     before = len(df)
@@ -112,13 +99,11 @@ def scrape():
     
     return df
 
-
 def auth_gspread_from_env():
     json_str = os.getenv("GCP_SERVICE_ACCOUNT_JSON")
     if not json_str:
         raise RuntimeError("GCP_SERVICE_ACCOUNT_JSON is not set in environment")
 
-    # Write JSON to temp file (same method as working version)
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as f:
         f.write(json_str)
         SERVICE_ACCOUNT_PATH = f.name
@@ -131,22 +116,18 @@ def append_to_sheet(df):
     if df.empty:
         logging.info("No data to append.")
         return 0
-
+    
     gc = auth_gspread_from_env()
     sh = gc.open_by_key(SHEET_ID)
     ws = sh.worksheet(WORKSHEET_NAME)
 
-    # Get current row count to know where to start
     row_count = len(ws.get_all_values())
     start_row = row_count + 1
 
-    # Append DataFrame
     set_with_dataframe(ws, df, row=start_row, include_column_header=False)
     logging.info("Appended %d rows. Total rows now: %d", len(df), row_count + len(df))
     return len(df)
 
-
-# --- Main Execution ---
 if __name__ == "__main__":
     df = scrape()
     appended = append_to_sheet(df)
