@@ -16,8 +16,14 @@ Each record includes both UTC and local (UTC+7) timestamps, brand, weight, and b
 
 ## Background
 
-This project was built to help my family track gold price movements for investment purposes.  
+This project was built to help my family track gold price movements for investment purposes.
 As a Data Analyst, I wanted to provide reliable, structured data so they can make informed decisions. On a side note, it's also to demonstrate automation, API usage, and data handling in Python.
+
+---
+
+# Check the Result
+
+You can check the result in [Here](https://docs.google.com/spreadsheets/d/1BCR_IbhFWSIR1faz9UJXItLHSOicaSWofymvDCSuq_E/edit?usp=sharing)
 
 ---
 
