@@ -11,6 +11,9 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import gspread
 from gspread_dataframe import set_with_dataframe
+import time
+import random
+from gspread.exceptions import APIError
 
 URL = "https://www.ecorp.galeri24.co.id/harga-emas"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
@@ -18,6 +21,26 @@ SHEET_ID = "1BCR_IbhFWSIR1faz9UJXItLHSOicaSWofymvDCSuq_E"
 WORKSHEET_NAME = "Galeri24"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+def retry_gspread(func, max_attempts=5, base_sleep=5):
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return func()
+        except APIError as e:
+            status = getattr(e.response, "status_code", None)
+
+            if status not in (429, 500, 503):
+                raise  # real error → fail fast
+
+            if attempt == max_attempts:
+                raise
+
+            sleep = base_sleep * attempt + random.uniform(0, 2)
+            logging.warning(
+                "Google Sheets API error %s. Retrying in %.1fs (attempt %d/%d)",
+                status, sleep, attempt, max_attempts
+            )
+            time.sleep(sleep)
 
 def create_session(retries=3, backoff=0.3, status_forcelist=(500, 502, 503, 504)):
     s = requests.Session()
@@ -130,5 +153,5 @@ def append_to_sheet(df):
 
 if __name__ == "__main__":
     df = scrape()
-    appended = append_to_sheet(df)
+    appended = retry_gspread(lambda: append_to_sheet(df))
     logging.info("Done. Appended %d rows.", appended)
