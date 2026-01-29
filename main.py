@@ -149,10 +149,9 @@ def append_to_sheet(df):
     sh = gc.open_by_key(SHEET_ID)
     ws = sh.worksheet(WORKSHEET_NAME)
 
-    start_row = row_count + 1
-
     existing = ws.get_all_values()
     row_count = len(existing)
+    start_row = row_count + 1
     if existing:
         header = existing[0]
         if "timestamp" in header:
