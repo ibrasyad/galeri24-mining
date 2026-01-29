@@ -120,6 +120,11 @@ def scrape():
 
     df = df[["timestamp", "timestamp_local", "brand", "weight", "harga_jual", "harga_buyback"]]
     
+    if len(df) < 3:
+        raise RuntimeError(
+            f"Scraped too few rows ({len(df)}). Possible site change or partial load."
+        )
+    
     return df
 
 def auth_gspread_from_env():
@@ -144,9 +149,28 @@ def append_to_sheet(df):
     sh = gc.open_by_key(SHEET_ID)
     ws = sh.worksheet(WORKSHEET_NAME)
 
-    row_count = len(ws.get_all_values())
     start_row = row_count + 1
 
+    existing = ws.get_all_values()
+    row_count = len(existing)
+    if existing:
+        header = existing[0]
+        if "timestamp" in header:
+            ts_idx = header.index("timestamp")
+            existing_ts = {
+                row[ts_idx]
+                for row in existing[1:]
+                if len(row) > ts_idx
+            }
+            before = len(df)
+            df = df[~df["timestamp"].isin(existing_ts)]
+            if before != len(df):
+                logging.info("Dropped %d duplicate rows", before - len(df))
+    
+    if df.empty:
+        logging.info("All rows already exist, skipping append.")
+        return 0
+    
     set_with_dataframe(ws, df, row=start_row, include_column_header=False)
     logging.info("Appended %d rows. Total rows now: %d", len(df), row_count + len(df))
     return len(df)
