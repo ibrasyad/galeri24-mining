@@ -15,7 +15,7 @@ import time
 import random
 from gspread.exceptions import APIError
 
-URL = "https://www.ecorp.galeri24.co.id/harga-emas"
+URL = "https://galeri24.co.id/harga-emas"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 SHEET_ID = "1BCR_IbhFWSIR1faz9UJXItLHSOicaSWofymvDCSuq_E"
 WORKSHEET_NAME = "Galeri24"
